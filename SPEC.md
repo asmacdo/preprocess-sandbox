@@ -27,29 +27,41 @@ This repository does not contain data or derivatives.
 
 ### Two-phase bootstrap
 
-Bootstrapping is split into two phases to ensure complete provenance:
+Bootstrapping is split into two scripts to ensure complete provenance:
 
-**Phase 1** (runs outside the new dataset):
+**`bootstrap.sh`** (runs outside the new dataset):
 - Creates the new dataset with `datalad create -c text2git`
-- Copies Phase 2 script into `code/`
+- Copies `prepare_dataset.sh` and `prepare_dataset.env` config into `code/`
 - Amends the initial commit message to record:
   - Bootstrap repo URL and commit hash
   - Exact command invoked
-- Phase 1 script lives only in this bootstrap repo
+- Lives only in this bootstrap repo (not copied to created datasets)
 
-**Phase 2** (runs inside the new dataset):
+**`prepare_dataset.sh`** (runs inside the new dataset):
 - Executed via `datalad run` so provenance is captured in git
+- Reads configuration from `code/prepare_dataset.env`
 - Attaches OpenNeuro input as `sourcedata/raw` subdataset
 - Clones ReproNim containers as `code/containers` subdataset
 - Freezes container versions
 - Generates execution scripts in `code/`
-- After Phase 2, the dataset is fully self-contained
+- After completion, the dataset is fully self-contained
+
+**`code/prepare_dataset.env`** (configuration):
+```
+OPENNEURO_DATASET=ds000001
+PIPELINE=mriqc
+MRIQC_VERSION=24.0.2
+NTHREADS=1
+MEM_MB=3000
+```
 
 ```
-Phase 1 (external)              Phase 2 (internal)
-─────────────────────           ──────────────────────
+bootstrap.sh (external)         prepare_dataset.sh (internal)
+───────────────────────         ─────────────────────────────
 Runs from: bootstrap repo       Runs from: inside new dataset
 Creates:   the dataset          Sets up:   containers, inputs, scripts
+Copies:    prepare_dataset.sh   Reads:     code/prepare_dataset.env
+           + prepare_dataset.env
 Records:   commit msg with      Records:   datalad run provenance
            exact command +
            bootstrap repo URL/commit
@@ -64,8 +76,9 @@ ds000001-mriqc/
   derivatives/
     mriqc/                # MRIQC outputs (BIDS-Derivatives)
   code/
+    prepare_dataset.env   # Configuration (copied from bootstrap repo)
     containers/           # ReproNim containers (subdataset)
-    phase2_setup.sh       # Setup script (copied from bootstrap repo)
+    prepare_dataset.sh    # Setup script (copied from bootstrap repo)
     participant_job.sh    # Per-subject execution script
     run_mriqc.sh          # Main execution entry point
   logs/                   # Execution logs
