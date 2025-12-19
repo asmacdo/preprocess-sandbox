@@ -3,3 +3,8 @@
 	url = git@github.com:OpenNeuroDatasets/ds000003.git
 	datalad-id = 9040fae2-8704-11e8-aff3-0242ac12000c
 	datalad-url = git@github.com:OpenNeuroDatasets/ds000003.git
+[submodule "ds000001-mriqc"]
+	path = ds000001-mriqc
+	url = https://cerebra.fz-juelich.de/f.hoffstaedter/ds000001-mriqc
+	datalad-id = e0514950-e780-4f0e-b0d2-b16e0a2cf2ea
+	datalad-url = https://cerebra.fz-juelich.de/f.hoffstaedter/ds000001-mriqc
