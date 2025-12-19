@@ -16,10 +16,63 @@ elsewhere.
 Each preprocessing dataset produced by this repository is:
 - a separate DataLad dataset
 - initialized with the YODA layout
-- self-contained and reproducible
+- **fully self-contained after bootstrapping** (no external dependencies)
 - disposable or archivable on its own
 
 This repository does not contain data or derivatives.
+
+---
+
+## Architecture
+
+### Two-phase bootstrap
+
+Bootstrapping is split into two phases to ensure complete provenance:
+
+**Phase 1** (runs outside the new dataset):
+- Creates the new dataset with `datalad create -c text2git`
+- Copies Phase 2 script into `code/`
+- Amends the initial commit message to record:
+  - Bootstrap repo URL and commit hash
+  - Exact command invoked
+- Phase 1 script lives only in this bootstrap repo
+
+**Phase 2** (runs inside the new dataset):
+- Executed via `datalad run` so provenance is captured in git
+- Attaches OpenNeuro input as `sourcedata/raw` subdataset
+- Clones ReproNim containers as `code/containers` subdataset
+- Freezes container versions
+- Generates execution scripts in `code/`
+- After Phase 2, the dataset is fully self-contained
+
+```
+Phase 1 (external)              Phase 2 (internal)
+─────────────────────           ──────────────────────
+Runs from: bootstrap repo       Runs from: inside new dataset
+Creates:   the dataset          Sets up:   containers, inputs, scripts
+Records:   commit msg with      Records:   datalad run provenance
+           exact command +
+           bootstrap repo URL/commit
+```
+
+### Resulting dataset layout
+
+```
+ds000001-mriqc/
+  sourcedata/
+    raw/                  # OpenNeuro dataset (subdataset)
+  derivatives/
+    mriqc/                # MRIQC outputs (BIDS-Derivatives)
+  code/
+    containers/           # ReproNim containers (subdataset)
+    phase2_setup.sh       # Setup script (copied from bootstrap repo)
+    participant_job.sh    # Per-subject execution script
+    run_mriqc.sh          # Main execution entry point
+  logs/                   # Execution logs
+  work/                   # Working directory (gitignored)
+  README.md
+  CHANGELOG.md
+```
 
 ---
 
@@ -31,7 +84,7 @@ This repository does not contain data or derivatives.
 - Defining standard structure (inputs, derivatives, logs, code)
 - Recording provenance in a human-readable and machine-readable way
 - Supporting MRIQC initially, with fMRIPrep planned
-- Enabling execution on laptops, HPC, or other batch systems
+- Enabling execution at multiple scales (see Execution Tiers below)
 
 ### Out of scope
 
@@ -40,6 +93,50 @@ This repository does not contain data or derivatives.
 - Performing group analysis or statistics
 - Harmonizing or comparing datasets
 - Defining scientific quality thresholds
+
+---
+
+## Execution tiers
+
+The system is designed to work at increasing scales without architectural changes:
+
+### Tier 1: Local (laptop/workstation)
+- Simple bash loop over subjects
+- Sequential or basic parallelism (GNU parallel)
+- Target: tiny datasets, testing, development
+
+### Tier 2: Beefy server
+- Same scripts as Tier 1
+- More cores/RAM available
+- Target: medium datasets
+
+### Tier 3: HPC
+- Add scheduler support (SLURM primarily, others possible)
+- May add RIA stores for efficient data handling at scale
+- May add per-subject branch strategy for parallel git operations
+- Target: large datasets, batch processing
+
+**Current focus: Tier 1** - get the fundamentals right before scaling.
+
+---
+
+## Technical decisions
+
+### Container strategy
+- Use ReproNim containers dataset (`https://github.com/ReproNim/containers.git`)
+- Clone as subdataset at `code/containers`
+- Pin specific versions using `freeze_versions` script
+- Containers are Singularity/Apptainer images
+
+### Execution model
+- Per-subject execution (one MRIQC run per subject)
+- Start with sequential loop (single subject)
+- Parallelism added later without architectural changes
+
+### Deferred decisions
+- **RIA stores**: Will likely need for Tier 3 scaling, defer for now
+- **Per-subject branches**: Useful for parallel git operations at scale, defer for now
+- **HTCondor support**: SLURM is primary target, others later
 
 ---
 
@@ -53,8 +150,6 @@ This repository does not contain data or derivatives.
 
 This avoids monolithic repos and accidental coupling.
 
----
-
 ### 2. Boring, defensible defaults
 
 - Prefer community-standard tools (MRIQC, fMRIPrep)
@@ -62,8 +157,6 @@ This avoids monolithic repos and accidental coupling.
 - Prefer reproducibility over performance tweaks
 
 If a choice cannot be defended publicly, it does not belong here.
-
----
 
 ### 3. Reproducibility over convenience
 
@@ -74,8 +167,6 @@ Every preprocessing dataset must be reproducible using:
 - recorded invocation parameters
 
 Bootstrap scripts are treated as scientific artifacts.
-
----
 
 ### 4. Human legibility
 
@@ -90,8 +181,6 @@ should be able to answer:
 - how to reproduce it
 
 READMEs are first-class outputs, not an afterthought.
-
----
 
 ### 5. Scale without heroics
 
@@ -124,3 +213,13 @@ This project is successful if:
 - MRIQC / fMRIPrep can be run without manual restructuring
 - Provenance survives handoff, time, and reruns
 
+---
+
+## References
+
+This project draws inspiration from:
+
+- [FAIRly big workflow](http://dx.doi.org/10.1038/s41597-022-01163-2) - Wagner et al.
+- Felix Hoffstaedter's bootstrap_MRIQC scripts (see `reference/hoffstaedter/`)
+- [ReproNim containers](https://github.com/ReproNim/containers)
+- [DataLad Handbook](http://handbook.datalad.org/)
