@@ -66,11 +66,15 @@ How it works:
 8. con-duct wraps singularity exec for resource monitoring
 9. Pushes results to RIA output store
 
-MRIQC processing (in progress at time of writing):
+MRIQC processing **COMPLETED**:
 - Processing both anat (T1w) and func (bold) data
 - Uses synthstrip for skull stripping
 - Uses ANTs for spatial normalization
 - Logs go to `logs/duct/sub-02_*`
+- **Wall clock time**: 587 sec (~10 min)
+- **Memory peak**: 7.1 GB RSS
+- **Results**: pushed to branch `job_sub-02` in RIA store
+- **Commit**: `b92eb53 [DATALAD RUNCMD] Compute MRIQC for sub-02`
 
 ## Key observations
 
