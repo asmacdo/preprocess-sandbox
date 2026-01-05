@@ -33,6 +33,7 @@
 
 ## Optional / later
 
+- [ ] add shellcheck
 - [ ] Compare bootstrap approach to BABS
 - [ ] Evaluate DataLad RIA stores if scaling up
 - [ ] Documentation & polish

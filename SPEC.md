@@ -69,10 +69,15 @@ Records:   commit msg with      Records:   datalad run provenance
 
 ### Resulting dataset layout
 
+The created dataset follows the **BIDS-study** convention:
+- Raw input data lives in `sourcedata/raw/` (not top-level)
+- Derivatives go in `derivatives/<pipeline>/`
+- This keeps the dataset root clean and clearly separates inputs from outputs
+
 ```
 ds000001-mriqc/
   sourcedata/
-    raw/                  # OpenNeuro dataset (subdataset)
+    raw/                  # OpenNeuro dataset (subdataset, BIDS-compliant)
   derivatives/
     mriqc/                # MRIQC outputs (BIDS-Derivatives)
   code/
