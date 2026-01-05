@@ -76,6 +76,25 @@ MRIQC processing **COMPLETED**:
 - **Results**: pushed to branch `job_sub-02` in RIA store
 - **Commit**: `b92eb53 [DATALAD RUNCMD] Compute MRIQC for sub-02`
 
+## Merging results
+
+To merge results from RIA store back to main dataset:
+```bash
+cd ~/datasets/repro-felix/ds000003-demo-mriqc
+git remote add outputstore /home/austin/datasets/repro-felix/RIA_QCworkflow/985/e5e6e-aaa0-41aa-9669-9581224ec704
+git fetch outputstore
+git merge -m "Merge MRIQC results for sub-02" outputstore/job_sub-02
+```
+
+**Important**: After merge, file content is still in RIA store. To fetch locally:
+```bash
+# Register file locations first (RIA quirk)
+git annex fsck -f mriqc_out-storage --fast sub-02/ logs/
+
+# Then get files
+datalad get sub-02/ logs/
+```
+
 ## Key observations
 
 ### Differences from our SPEC
