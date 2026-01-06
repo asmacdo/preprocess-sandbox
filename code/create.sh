@@ -2,8 +2,9 @@
 #
 # create.sh - Create a new preprocessing dataset
 #
-# Usage: ./create.sh <dataset_id> --project <pipeline>
+# Usage: ./create.sh <dataset_id> --project <pipeline> [--raw-store-base <url>]
 # Example: ./create.sh ds000001 --project mriqc
+# Example: ./create.sh ds000003-demo --project mriqc --raw-store-base https://github.com/ReproNim
 #
 # Environment variables:
 #   DATASETS_DIR - where to create the dataset (default: pwd)
@@ -13,11 +14,16 @@ set -e -u
 # --- Parse arguments ---
 SAMPLE=""
 PROJECT=""
+RAW_STORE_BASE_OVERRIDE=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         --project)
             PROJECT="$2"
+            shift 2
+            ;;
+        --raw-store-base)
+            RAW_STORE_BASE_OVERRIDE="$2"
             shift 2
             ;;
         -*)
@@ -32,7 +38,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "$SAMPLE" ]] || [[ -z "$PROJECT" ]]; then
-    echo "Usage: $0 <dataset_id> --project <pipeline>"
+    echo "Usage: $0 <dataset_id> --project <pipeline> [--raw-store-base <url>]"
     echo "Example: $0 ds000001 --project mriqc"
     exit 1
 fi
@@ -66,6 +72,11 @@ cp "$PREPARE_ENV" code/prepare_dataset.env 2>/dev/null || true
 # Write SAMPLE into the config
 echo "SAMPLE=${SAMPLE}" >> code/prepare_dataset.env
 
+# Override RAW_STORE_BASE if provided
+if [[ -n "$RAW_STORE_BASE_OVERRIDE" ]]; then
+    sed -i "s|^RAW_STORE_BASE=.*|RAW_STORE_BASE=${RAW_STORE_BASE_OVERRIDE}|" code/prepare_dataset.env
+fi
+
 # Source env to get variables for README
 source code/prepare_dataset.env
 
@@ -78,6 +89,7 @@ if [[ -f "$README_TEMPLATE" ]]; then
 fi
 
 # --- Record provenance in commit message ---
+git add code/ README.md
 git commit --amend -m "Create ${DATASET_NAME}
 
 Source repo: $(git -C "${THIS_REPO_DIR}" remote get-url origin 2>/dev/null || echo 'local')
