@@ -1,28 +1,28 @@
+#!/bin/bash
+#
+# mriqc_prepare_dataset.sh - Set up MRIQC preprocessing dataset
+#
+# This script runs inside a dataset created by bootstrap.sh.
+# It reads configuration from code/prepare_dataset.env
+#
+# Usage: datalad run ./code/prepare_dataset.sh
+
 set -e -u
 
-# project name space
+# --- Load configuration ---
+source code/prepare_dataset.env
+
+if [[ -z "${SAMPLE:-}" ]]; then
+    echo "Error: SAMPLE not set in prepare_dataset.env"
+    exit 1
+fi
+
+# --- Derived values ---
 PROJECT="mriqc"
-# define SAMPLE to be processed
-SAMPLE="$1"
-# define and export RIA folder name
-localRIA="$(pwd)/RIA_QCworkflow"
-# define clonable location for BIDS inputs
-raw_store="https://github.com/OpenNeuroDatasets/${SAMPLE}.git"
-raw_ds=""
-# define temporal working directory for job execution
-temporary_store="/tmp"
+raw_store="${RAW_STORE_BASE}/${SAMPLE}.git"
+localRIA="$(pwd)/RIA"
 
-### MRIQC number of threads, RAM limit, MRI modalities {T1w,T2w,bold,dwi}
-nthreads=1
-mb_RAM=3000
-modalities="" # "--modalities T1w"
-
-# MRIQC container from the Repronim container datalad dataset
-container_store="https://github.com/ReproNim/containers.git"
-container_ds=""
-container='code/containers/images/bids/bids-mriqc--24.0.2.sing'
-
-##### don't change anything below if you are not sure what you want to do #####
+##### Setup begins here #####
 
 # define ID for git commits (take from local user configuration)
 git_name="$(git config user.name)"
@@ -30,16 +30,9 @@ git_email="$(git config user.email)"
 
 # define and create the input ria-store only to clone from
 input_store="ria+file://${localRIA}/inputstore"
-mkdir -p $localRIA/inputstore
+mkdir -p "$localRIA/inputstore"
 # define the output ria-store to push all results to
 output_store="ria+file://${localRIA}"
-
-# all results a tracked in a single output dataset
-# create a fresh one
-# job submission will take place from a checkout of this dataset, but no
-# results will be pushed into it
-datalad create -c yoda ${SAMPLE}-${PROJECT}
-cd ${SAMPLE}-${PROJECT}
 # add html in unlocked mode and keep tsvs and datalset_description in git
 git annex config --set annex.addunlocked 'include=*.html'
 echo ".bidsignore annex.largefiles=nothing
@@ -49,10 +42,10 @@ group*.tsv annex.largefiles=nothing
 datalad save -m "keep .bidsignore, dataset_description.json & tsv files in git"
 
 # clone the container-dataset as a subdataset.
-datalad clone -d . "${container_store}${container_ds}" code/containers
+datalad clone -d . "${CONTAINER_STORE}" code/containers
 # configure a custom container call to satisfy the needs of this analysis
 datalad run -m "Freeze mriqc container version" \
-  code/containers/scripts/freeze_versions --save-dataset=. bids-mriqc=24.0.2
+  code/containers/scripts/freeze_versions --save-dataset=. "bids-mriqc=${MRIQC_VERSION}"
 datalad run -m "Setup elderly mriqc version with classification support" \
   code/containers/scripts/freeze_versions --save-dataset=. bids-mriqc:bids-mriqc-clf=0.15.1
 datalad run -m "Remove datalad-get option and do singularity exec instead of run" \
@@ -68,7 +61,7 @@ datalad create-sibling-ria -s ${PROJECT}_out "${output_store}" \
   --alias ${SAMPLE}-${PROJECT} --new-store-ok
 
 # register the input dataset, a superdataset comprising all participants
-datalad clone -d . "${raw_store}${raw_ds}" sourcedata/raw
+datalad clone -d . "${raw_store}" sourcedata/raw
 git commit --amend -m "Register ${SAMPLE} BIDS dataset as input"
 
 
@@ -129,13 +122,13 @@ datalad containers-run \\
   -i sourcedata/raw/\${subid} \\
   -i sourcedata/raw/dataset_description.json \\
   mriqc sourcedata/raw . participant \\
-    --participant-label \$subid $modalities \\
+    --participant-label \$subid ${MODALITIES:+--modalities $MODALITIES} \\
     --no-datalad-get \\
     --no-sub \\
     --verbose \\
-    --nprocs $nthreads \\
-    --mem $mb_RAM \\
-    --work-dir $temporary_store \\
+    --nprocs $NTHREADS \\
+    --mem $MEM_MB \\
+    --work-dir $SCRATCH_DIR \\
     --float32 \\
     --verbose-reports
 
@@ -530,7 +523,7 @@ subid=\$1
 # define DSLOCKFILE, DATALAD & GIT ENV for participant_job
 export DSLOCKFILE=$(pwd)/.SLURM_datalad_lock \
 DATALAD_GET_SUBDATASET__SOURCE__CANDIDATE__100${SAMPLE}=${raw_store}#{id} \
-DATALAD_GET_SUBDATASET__SOURCE__CANDIDATE__101cat12=${container_store}#{id} \
+DATALAD_GET_SUBDATASET__SOURCE__CANDIDATE__101cat12=${CONTAINER_STORE}#{id} \
 GIT_AUTHOR_NAME=\$(git config user.name) \
 GIT_AUTHOR_EMAIL=\$(git config user.email) \
 JOBID=\${subid:4}.\${SLURM_JOB_ID} \
