@@ -568,10 +568,6 @@ datalad drop --what datasets --reckless availability -r sourcedata/raw
 datalad push --to ${PROJECT}_in
 datalad push --to ${PROJECT}_out
 
-# submit condor dag to run the sample 
-condor_submit_dag \
-  -include_env "USER","HOME","PATH","PYTHONPATH","LANG","PWD" \
-  code/process.condor_dag
-
 # if we get here, we are happy
-echo SUCCESS ${SAMPLE} is running
+echo "SUCCESS: ${SAMPLE}-${PROJECT} is ready"
+echo "To run jobs, see README.md for instructions"
