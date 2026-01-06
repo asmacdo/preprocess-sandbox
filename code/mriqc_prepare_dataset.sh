@@ -2,10 +2,10 @@
 #
 # mriqc_prepare_dataset.sh - Set up MRIQC preprocessing dataset
 #
-# This script runs inside a dataset created by bootstrap.sh.
+# This script runs inside a dataset created by create.sh.
 # It reads configuration from code/prepare_dataset.env
 #
-# Usage: datalad run ./code/prepare_dataset.sh
+# Usage: ./code/prepare_dataset.sh
 
 set -e -u
 
@@ -142,7 +142,7 @@ echo SUCCESS
 EOT
 
 chmod +x code/participant_job
-datalad save -m "Participant compute job implementation" code/participant_job
+datalad save -m "Add participant_job script" code/participant_job
 
 
 cat > code/process.sub << EOT
@@ -191,7 +191,7 @@ rm -rf ${SCRATCH_DIR}/tmp_\${subid:4}
 EOT
 
 chmod +x code/process.sub
-datalad save -m "individual job submission" code/process.sub
+datalad save -m "Add process.sub script" code/process.sub
 
 
 cat > code/results.merger << EOT
@@ -266,7 +266,7 @@ fi
 
 EOT
 chmod +x code/results.merger
-datalad save -m "finalize dataset by merging results branches into master" code/results.merger
+datalad save -m "Add results.merger script" code/results.merger
 
 # create clean up script
 cat > code/killall.sh << EOT
@@ -443,7 +443,7 @@ printf "PARENT $(cd sourcedata/raw && echo sub*) CHILD MERGE" >> code/process.co
 
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-datalad save -m "HTCondor submission setup" code/ .gitignore
+datalad save -m "Add HTCondor scripts" code/ .gitignore
 
 ################################################################################
 # HTCONDOR SETUP END
@@ -552,7 +552,7 @@ for s in $(find sourcedata/raw -maxdepth 1 -name 'sub-*' -printf '%f\n'); do
       printf "code/process.submit $s\n" >> code/${SAMPLE}_mriqc.jobs
 done
 
-datalad save -m "SLURM submission setup" code/ .gitignore
+datalad save -m "Add SLURM scripts" code/ .gitignore
 
 ################################################################################
 # SLURM SETUP END
