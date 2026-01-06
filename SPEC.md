@@ -151,6 +151,18 @@ The system is designed to work at increasing scales without architectural change
 - Start with sequential loop (single subject)
 - Parallelism added later without architectural changes
 
+### Dependency recording
+At execution time (not bootstrap), record versions of key tools in logs:
+- datalad, datalad-container, git-annex
+- singularity/apptainer
+- con-duct
+- MRIQC container version (recorded automatically by `datalad containers-run`)
+- Bootstrap script version (recorded in initial commit message)
+
+This serves two purposes:
+1. **Fail fast** - check required tools exist before starting
+2. **Reproducibility** - capture exact versions used for each run
+
 ### Deferred decisions
 - **RIA stores**: Will likely need for Tier 3 scaling, defer for now
 - **Per-subject branches**: Useful for parallel git operations at scale, defer for now
