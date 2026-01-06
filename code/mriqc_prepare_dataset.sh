@@ -178,15 +178,15 @@ arguments="${input_store}#$(datalad -f '{infos[dataset][id]}' wtf -S dataset) \\
   \${subid} \\
   "
 
-mkdir -p ${temporary_store}/tmp_\${subid:4}
-cd ${temporary_store}/tmp_\${subid:4}
+mkdir -p ${SCRATCH_DIR}/tmp_\${subid:4}
+cd ${SCRATCH_DIR}/tmp_\${subid:4}
 
 \${executable} \${arguments} \\
 > $(pwd)/logs/\${subid}.out \\
 2> $(pwd)/logs/\${subid}.err
 
-chmod +w -R ${temporary_store}/tmp_\${subid:4} && \
-rm -rf ${temporary_store}/tmp_\${subid:4}
+chmod +w -R ${SCRATCH_DIR}/tmp_\${subid:4} && \
+rm -rf ${SCRATCH_DIR}/tmp_\${subid:4}
 
 EOT
 
@@ -312,7 +312,7 @@ cat > code/process.condor_submit << EOT
 universe       = vanilla
 # resource requirements for each job
 request_cpus   = 1
-request_memory = ${mb_RAM}M
+request_memory = ${MEM_MB}M
 request_disk   = 10G
 
 # be nice and only use free resources
@@ -373,7 +373,7 @@ cat > code/process.condor_submit-merge << EOT
 universe       = vanilla
 # resource requirements for each job
 request_cpus   = 1
-request_memory = ${mb_RAM}M
+request_memory = ${MEM_MB}M
 request_disk   = 100G
 
 # be nice and only use free resources
@@ -530,8 +530,8 @@ JOBID=\${subid:4}.\${SLURM_JOB_ID} \
 REPRONIM_USE_DUCT=1
 
 # use subject specific folder
-mkdir ${temporary_store}/\${JOBID}
-cd ${temporary_store}/\${JOBID}
+mkdir ${SCRATCH_DIR}/\${JOBID}
+cd ${SCRATCH_DIR}/\${JOBID}
 
 # run things
 $(pwd)/code/participant_job \
@@ -541,9 +541,9 @@ $(git remote get-url --push ${PROJECT}_out) \
 >$(pwd)/logs/\${JOBID}.out \
 2>$(pwd)/logs/\${JOBID}.err
 
-cd ${temporary_store}/
-chmod 777 -R ${temporary_store}/\${JOBID}
-rm -fr ${temporary_store}/\${JOBID}
+cd ${SCRATCH_DIR}/
+chmod 777 -R ${SCRATCH_DIR}/\${JOBID}
+rm -fr ${SCRATCH_DIR}/\${JOBID}
 
 EOT
 chmod +x code/process.submit
