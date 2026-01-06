@@ -8,17 +8,13 @@
     - [x] compare with README/SPEC
     - [x] document learnings in `reference/felix-test-run-notes.md`
 
-## Bootstrap script (core work)
+## Bootstrap script (DONE)
 
-Approach: iterate on Felix's script rather than starting fresh.
-
-- [ ] Copy Felix's TEMPLATE script to `code/bootstrap_mriqc.sh`
-- [ ] Extract hardcoded values to `prepare_dataset.env` config file
-- [ ] Add version/dependency checks (fail fast)
-- [ ] Customize README generation with bootstrap provenance
-- [ ] Adjust output path to `derivatives/mriqc/`
-- [ ] Test bootstrap on ds000003-demo
-- [ ] Record tool versions in execution logs
+- [x] Split Felix's script into create.sh + mriqc_prepare_dataset.sh
+- [x] Extract hardcoded values to prepare_dataset.env
+- [x] Add --raw-store-base CLI flag for non-OpenNeuro datasets
+- [x] Generate README with provenance
+- [x] Test create + prepare on ds000003-demo
 
 ## MRIQC execution
 
@@ -28,9 +24,16 @@ Approach: iterate on Felix's script rather than starting fresh.
 - [ ] Verify provenance is captured correctly
 - [ ] Run second subject to test branch/merge pattern
 
+## Refactor / improvements
+
+- [ ] Move heredocs to template files, generate runtime.env with dynamic values
+      (scripts read config at runtime instead of embedding hardcoded values)
+- [ ] Add shellcheck
+- [ ] Add version/dependency checks (fail fast)
+- [ ] Adjust output path to `derivatives/mriqc/` (per SPEC)
+
 ## Optional / later
 
-- [ ] Add shellcheck
 - [ ] Compare bootstrap approach to BABS
 - [ ] Remove HTCondor support (or leave commented)
 - [ ] Documentation & polish
