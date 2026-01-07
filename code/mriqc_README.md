@@ -2,13 +2,24 @@
 
 Preprocessing dataset for ${SAMPLE} using MRIQC.
 
+## Prerequisites
+
+Create and activate a Python virtual environment with required dependencies:
+
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install datalad datalad-container
+```
+
 ## Setup
 
 This dataset was created by [preprocess-sandbox](${SOURCE_REPO}).
 
 To complete setup:
 ```bash
-datalad run ./code/prepare_dataset.sh
+source venv/bin/activate
+./code/prepare_dataset.sh
 ```
 
 This will:
@@ -18,6 +29,11 @@ This will:
 - Generate job scripts
 
 ## Running MRIQC
+
+Ensure venv is activated before running:
+```bash
+source venv/bin/activate
+```
 
 ### Tier 1: Local (single subject)
 ```bash

@@ -109,6 +109,6 @@ explicitly referenced from generated datasets.
 ## Where to look next
 
 - SPEC.md — project purpose, values, goals, and non-goals
-- TODO.md — concrete work items
+- [Issues](https://github.com/asmacdo/preprocess-sandbox/issues) — roadmap and discussion
 - code/ — bootstrap scripts and helpers
 
