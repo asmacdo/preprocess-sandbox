@@ -1,0 +1,15 @@
+FROM slurm-docker-cluster:25.05.3
+
+RUN dnf -y install git python3-pip apptainer && dnf clean all
+
+RUN pip install git-annex datalad datalad-container con-duct
+
+# SECURITY: Workaround for git ownership mismatch with mounted volumes.
+# Disables CVE-2022-24765 protection - see slurm.md "Security TODO"
+RUN git config --global --add safe.directory '*'
+
+# HACK: git-annex needs committer identity via git config, not just GIT_AUTHOR_* env vars
+# TODO: Consider asking git-annex upstream to respect GIT_COMMITTER_* env vars
+# TODO: Or add GIT_COMMITTER_* to process.submit heredoc in mriqc_prepare_dataset.sh
+RUN git config --global user.email "slurm@preprocess-sandbox" \
+ && git config --global user.name "SLURM Worker"

@@ -1,0 +1,17 @@
+# Copy this file to docker-compose.override.yml in slurm-docker-cluster/
+# Adjust the datasets path for your machine
+
+# SECURITY NOTE: Using safe.directory '*' workaround for git ownership issues.
+# See slurm.md "Security TODO" - must fix before production use.
+x-datasets-volume: &datasets-volume
+  - /path/to/datasets:/path/to/datasets  # <-- EDIT THIS PATH
+
+services:
+  slurmctld:
+    volumes: *datasets-volume
+  c1:
+    image: slurm-preprocess-sandbox:25.05.3
+    volumes: *datasets-volume
+  c2:
+    image: slurm-preprocess-sandbox:25.05.3
+    volumes: *datasets-volume

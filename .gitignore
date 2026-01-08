@@ -1,0 +1,12 @@
+# TODO remove
+# Cloned upstream repo - not tracked, use slurm/ overlay files instead
+slurm-docker-cluster/
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Editor
+*.swp
+*~
