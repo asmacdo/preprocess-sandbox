@@ -98,4 +98,4 @@ Command: $0 $*
 "
 
 echo "Dataset created: ${DATASETS_DIR}/${DATASET_NAME}"
-echo "Next: cd ${DATASET_NAME} && datalad run ./code/prepare_dataset.sh"
+echo "Next: cd ${DATASET_NAME} && ./code/prepare_dataset.sh"
