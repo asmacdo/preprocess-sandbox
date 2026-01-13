@@ -2,9 +2,9 @@
 #
 # create.sh - Create a new preprocessing dataset
 #
-# Usage: ./create.sh <dataset_id> --project <pipeline> [--name <name>] [--raw-store-base <url>]
+# Usage: ./create.sh <dataset_id> --project <pipeline> [--name <name>] [--site-config <path>] [--raw-store-base <url>]
 # Example: ./create.sh ds000001 --project mriqc
-# Example: ./create.sh ds000003-demo --project mriqc --name my-test --raw-store-base https://github.com/ReproNim
+# Example: ./create.sh ds000003-demo --project mriqc --site-config site.env --name my-test
 #
 # Environment variables:
 #   DATASETS_DIR - where to create the dataset (default: pwd)
@@ -15,6 +15,7 @@ set -e -u
 SAMPLE=""
 PROJECT=""
 DATASET_NAME_OVERRIDE=""
+SITE_CONFIG=""
 RAW_STORE_BASE_OVERRIDE=""
 
 while [[ $# -gt 0 ]]; do
@@ -25,6 +26,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --name)
             DATASET_NAME_OVERRIDE="$2"
+            shift 2
+            ;;
+        --site-config)
+            SITE_CONFIG="$2"
             shift 2
             ;;
         --raw-store-base)
@@ -43,9 +48,18 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "$SAMPLE" ]] || [[ -z "$PROJECT" ]]; then
-    echo "Usage: $0 <dataset_id> --project <pipeline> [--name <name>] [--raw-store-base <url>]"
+    echo "Usage: $0 <dataset_id> --project <pipeline> [--name <name>] [--site-config <path>] [--raw-store-base <url>]"
     echo "Example: $0 ds000001 --project mriqc"
     exit 1
+fi
+
+# --- Source site config if provided ---
+if [[ -n "$SITE_CONFIG" ]]; then
+    if [[ ! -f "$SITE_CONFIG" ]]; then
+        echo "Error: Site config not found: $SITE_CONFIG"
+        exit 1
+    fi
+    source "$SITE_CONFIG"
 fi
 
 DATASET_NAME="${DATASET_NAME_OVERRIDE:-${SAMPLE}}"
@@ -92,7 +106,18 @@ cp "$PREPARE_ENV" code/prepare_dataset.env 2>/dev/null || true
 # Write SAMPLE into the config
 echo "SAMPLE=${SAMPLE}" >> code/prepare_dataset.env
 
-# Override RAW_STORE_BASE if provided
+# Write site config values if set
+if [[ -n "${CONTAINER_STORE:-}" ]]; then
+    sed -i "s|^CONTAINER_STORE=.*|CONTAINER_STORE=${CONTAINER_STORE}|" code/prepare_dataset.env
+fi
+if [[ -n "${SCRATCH_DIR:-}" ]]; then
+    sed -i "s|^SCRATCH_DIR=.*|SCRATCH_DIR=${SCRATCH_DIR}|" code/prepare_dataset.env
+fi
+if [[ -n "${RIA_BASE:-}" ]]; then
+    echo "RIA_BASE=${RIA_BASE}" >> code/prepare_dataset.env
+fi
+
+# Override RAW_STORE_BASE if provided via CLI
 if [[ -n "$RAW_STORE_BASE_OVERRIDE" ]]; then
     sed -i "s|^RAW_STORE_BASE=.*|RAW_STORE_BASE=${RAW_STORE_BASE_OVERRIDE}|" code/prepare_dataset.env
 fi
