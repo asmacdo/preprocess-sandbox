@@ -55,9 +55,25 @@ cd "$DATASETS_DIR"
 datalad create -c text2git "$DATASET_NAME"
 cd "$DATASET_NAME"
 
-# --- Copy project-specific scripts ---
-PREPARE_SCRIPT="${THIS_REPO_DIR}/code/${PROJECT}_prepare_dataset.sh"
-PREPARE_ENV="${THIS_REPO_DIR}/code/${PROJECT}_prepare_dataset.env"
+# --- Add bootstrap repo as subdataset for provenance ---
+# Warn if bootstrap repo has uncommitted changes
+if [[ -n "$(git -C "${THIS_REPO_DIR}" status --porcelain)" ]]; then
+    echo "Warning: bootstrap repo has uncommitted changes" >&2
+fi
+# Warn if local differs from upstream
+if git -C "${THIS_REPO_DIR}" rev-parse --verify origin/main >/dev/null 2>&1; then
+    LOCAL_COMMIT="$(git -C "${THIS_REPO_DIR}" rev-parse HEAD)"
+    UPSTREAM_COMMIT="$(git -C "${THIS_REPO_DIR}" rev-parse origin/main)"
+    if [[ "$LOCAL_COMMIT" != "$UPSTREAM_COMMIT" ]]; then
+        echo "Warning: bootstrap repo differs from origin/main" >&2
+    fi
+fi
+
+datalad clone -d . "${THIS_REPO_DIR}" code/bootstrap
+
+# --- Copy project-specific scripts from subdataset ---
+PREPARE_SCRIPT="code/bootstrap/code/${PROJECT}_prepare_dataset.sh"
+PREPARE_ENV="code/bootstrap/code/${PROJECT}_prepare_dataset.env"
 
 if [[ ! -f "$PREPARE_SCRIPT" ]]; then
     echo "Error: No prepare script found for project '${PROJECT}'"
@@ -65,7 +81,6 @@ if [[ ! -f "$PREPARE_SCRIPT" ]]; then
     exit 1
 fi
 
-mkdir -p code
 cp "$PREPARE_SCRIPT" code/prepare_dataset.sh
 cp "$PREPARE_ENV" code/prepare_dataset.env 2>/dev/null || true
 
@@ -92,8 +107,6 @@ fi
 git add code/ README.md
 git commit --amend -m "Create ${DATASET_NAME}
 
-Source repo: $(git -C "${THIS_REPO_DIR}" remote get-url origin 2>/dev/null || echo 'local')
-Source commit: $(git -C "${THIS_REPO_DIR}" rev-parse HEAD)
 Command: $0 $*
 "
 
