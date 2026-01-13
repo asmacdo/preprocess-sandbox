@@ -569,5 +569,5 @@ datalad push --to ${PROJECT}_in
 datalad push --to ${PROJECT}_out
 
 # if we get here, we are happy
-echo "SUCCESS: ${SAMPLE}-${PROJECT} is ready"
+echo "SUCCESS: $(basename "$(pwd)") is ready"
 echo "To run jobs, see README.md for instructions"
