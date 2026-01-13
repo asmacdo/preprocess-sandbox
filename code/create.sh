@@ -2,9 +2,9 @@
 #
 # create.sh - Create a new preprocessing dataset
 #
-# Usage: ./create.sh <dataset_id> --project <pipeline> [--raw-store-base <url>]
+# Usage: ./create.sh <dataset_id> --project <pipeline> [--name <name>] [--raw-store-base <url>]
 # Example: ./create.sh ds000001 --project mriqc
-# Example: ./create.sh ds000003-demo --project mriqc --raw-store-base https://github.com/ReproNim
+# Example: ./create.sh ds000003-demo --project mriqc --name my-test --raw-store-base https://github.com/ReproNim
 #
 # Environment variables:
 #   DATASETS_DIR - where to create the dataset (default: pwd)
@@ -14,12 +14,17 @@ set -e -u
 # --- Parse arguments ---
 SAMPLE=""
 PROJECT=""
+DATASET_NAME_OVERRIDE=""
 RAW_STORE_BASE_OVERRIDE=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         --project)
             PROJECT="$2"
+            shift 2
+            ;;
+        --name)
+            DATASET_NAME_OVERRIDE="$2"
             shift 2
             ;;
         --raw-store-base)
@@ -38,12 +43,12 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "$SAMPLE" ]] || [[ -z "$PROJECT" ]]; then
-    echo "Usage: $0 <dataset_id> --project <pipeline> [--raw-store-base <url>]"
+    echo "Usage: $0 <dataset_id> --project <pipeline> [--name <name>] [--raw-store-base <url>]"
     echo "Example: $0 ds000001 --project mriqc"
     exit 1
 fi
 
-DATASET_NAME="${SAMPLE}-${PROJECT}"
+DATASET_NAME="${DATASET_NAME_OVERRIDE:-${SAMPLE}}"
 
 # --- Determine paths ---
 THIS_REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
