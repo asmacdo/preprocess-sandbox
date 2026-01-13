@@ -1,6 +1,6 @@
-# ${SAMPLE}-${PROJECT}
+# ${SAMPLE}
 
-Preprocessing dataset for ${SAMPLE} using MRIQC.
+Preprocessing dataset for ${SAMPLE}.
 
 ## Prerequisites
 

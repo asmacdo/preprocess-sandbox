@@ -2,9 +2,9 @@
 #
 # create.sh - Create a new preprocessing dataset
 #
-# Usage: ./create.sh <dataset_id> --project <pipeline> [--name <name>] [--site-config <path>] [--raw-store-base <url>]
-# Example: ./create.sh ds000001 --project mriqc
-# Example: ./create.sh ds000003-demo --project mriqc --site-config site.env --name my-test
+# Usage: ./create.sh <dataset_id> --derivatives <pipeline> [--name <name>] [--site-config <path>] [--raw-store-base <url>]
+# Example: ./create.sh ds000001 --derivatives mriqc
+# Example: ./create.sh ds000003-demo --derivatives mriqc --site-config site.env --name my-test
 #
 # Environment variables:
 #   DATASETS_DIR - where to create the dataset (default: pwd)
@@ -13,15 +13,15 @@ set -e -u
 
 # --- Parse arguments ---
 SAMPLE=""
-PROJECT=""
+DERIVATIVES=""
 DATASET_NAME_OVERRIDE=""
 SITE_CONFIG=""
 RAW_STORE_BASE_OVERRIDE=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --project)
-            PROJECT="$2"
+        --derivatives)
+            DERIVATIVES="$2"
             shift 2
             ;;
         --name)
@@ -47,9 +47,9 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [[ -z "$SAMPLE" ]] || [[ -z "$PROJECT" ]]; then
-    echo "Usage: $0 <dataset_id> --project <pipeline> [--name <name>] [--site-config <path>] [--raw-store-base <url>]"
-    echo "Example: $0 ds000001 --project mriqc"
+if [[ -z "$SAMPLE" ]] || [[ -z "$DERIVATIVES" ]]; then
+    echo "Usage: $0 <dataset_id> --derivatives <pipeline> [--name <name>] [--site-config <path>] [--raw-store-base <url>]"
+    echo "Example: $0 ds000001 --derivatives mriqc"
     exit 1
 fi
 
@@ -91,11 +91,11 @@ fi
 datalad clone -d . "${THIS_REPO_DIR}" code/bootstrap
 
 # --- Copy project-specific scripts from subdataset ---
-PREPARE_SCRIPT="code/bootstrap/code/${PROJECT}_prepare_dataset.sh"
-PREPARE_ENV="code/bootstrap/code/${PROJECT}_prepare_dataset.env"
+PREPARE_SCRIPT="code/bootstrap/code/${DERIVATIVES}_prepare_dataset.sh"
+PREPARE_ENV="code/bootstrap/code/${DERIVATIVES}_prepare_dataset.env"
 
 if [[ ! -f "$PREPARE_SCRIPT" ]]; then
-    echo "Error: No prepare script found for project '${PROJECT}'"
+    echo "Error: No prepare script found for derivatives '${DERIVATIVES}'"
     echo "Expected: ${PREPARE_SCRIPT}"
     exit 1
 fi
@@ -126,11 +126,11 @@ fi
 source code/prepare_dataset.env
 
 # Generate README from template
-README_TEMPLATE="${THIS_REPO_DIR}/code/${PROJECT}_README.md"
+README_TEMPLATE="${THIS_REPO_DIR}/code/${DERIVATIVES}_README.md"
 if [[ -f "$README_TEMPLATE" ]]; then
     SOURCE_REPO="$(git -C "${THIS_REPO_DIR}" remote get-url origin 2>/dev/null || echo 'local')"
-    export SAMPLE PROJECT SOURCE_REPO RAW_STORE_BASE
-    envsubst '${SAMPLE} ${PROJECT} ${SOURCE_REPO} ${RAW_STORE_BASE}' < "$README_TEMPLATE" > README.md
+    export SAMPLE DERIVATIVES SOURCE_REPO RAW_STORE_BASE
+    envsubst '${SAMPLE} ${DERIVATIVES} ${SOURCE_REPO} ${RAW_STORE_BASE}' < "$README_TEMPLATE" > README.md
 fi
 
 # --- Record provenance in commit message ---

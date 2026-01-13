@@ -37,28 +37,62 @@ All preprocessing happens elsewhere.
 
 ---
 
+## Quick Start
+
+```bash
+# 1. Clone this repo
+git clone https://github.com/asmacdo/preprocess-sandbox.git
+cd preprocess-sandbox
+
+# 2. Copy site config to your datasets directory
+cp code/site.env.example /path/to/datasets/site.env
+
+# 3. Edit site.env for your environment
+#    - CONTAINER_STORE: path to shared containers
+#    - SCRATCH_DIR: working directory
+#    - DERIVATIVES: which pipelines to run (mriqc, fmriprep)
+
+# 4. Create a dataset
+cd /path/to/datasets
+/path/to/preprocess-sandbox/code/create.sh ds000001 \
+    --derivatives mriqc \
+    --site-config site.env
+
+# 5. Prepare and execute
+cd ds000001
+./code/prepare_dataset.sh
+# Then run jobs (see dataset README for options)
+```
+
+---
+
 ## Resulting dataset layout (created by this repo)
 
 For each OpenNeuro dataset, a **separate DataLad dataset** is created, e.g.:
 
-ds000001-mriqc/
+```
+ds000001/
   sourcedata/
     raw/                OpenNeuro dataset (DataLad subdataset)
   derivatives/
     mriqc/              MRIQC outputs (BIDS-Derivatives)
+    fmriprep/           fMRIPrep outputs (future)
   work/                 Scratch / working directories
-  logs/                 Validator output and run logs
-  code/                 Dataset-specific execution scripts
+  logs/                 Execution logs
+  code/
+    bootstrap/          This repo (subdataset, for provenance)
+    containers/         ReproNim containers (subdataset)
+    prepare_dataset.sh  Setup script
+    participant_job     Per-subject execution
 
   README.md
-  CHANGELOG.md
+```
 
-Each of these datasets:
-- is initialized with `datalad create -c yoda`
-- is self-contained
+Each dataset:
+- is initialized with `datalad create -c text2git`
+- includes this bootstrap repo as a subdataset for full provenance
+- is self-contained and independently reproducible
 - can be run, inspected, archived, or deleted independently
-
-This bootstrap repo does not track them.
 
 ---
 
@@ -66,17 +100,17 @@ This bootstrap repo does not track them.
 
 Typical flow:
 
-1. Choose an OpenNeuro dataset ID
-2. Run a bootstrap script from this repository
+1. Clone this repo and configure `site.env` for your environment
+2. Run `create.sh` to create a new dataset
 3. The script:
-   - creates a new YODA-style dataset elsewhere
+   - creates a new dataset with this repo as subdataset
+   - copies pipeline-specific scripts
    - writes a dataset-specific README
-   - records invocation parameters
-   - attaches the OpenNeuro dataset as input
-4. Preprocessing is run inside that new dataset
+4. Run `prepare_dataset.sh` inside the new dataset
+5. Execute jobs (local loop, SLURM, or HTCondor)
 
-This repo is not part of the resulting Git history of the analysis dataset,
-except by reference (README links, script URLs, etc.).
+The bootstrap repo becomes part of the created dataset's Git history
+as a subdataset, providing complete provenance.
 
 ---
 
