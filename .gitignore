@@ -1,6 +1,9 @@
-# TODO remove
-# Cloned upstream repo - not tracked, use slurm/ overlay files instead
+# Cloned upstream repos - not tracked
 slurm-docker-cluster/
+reference/babs/
+
+# Personal notes
+asmacdo/
 
 # Python
 venv/
