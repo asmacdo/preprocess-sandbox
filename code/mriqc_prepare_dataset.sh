@@ -116,6 +116,7 @@ datalad get -n "sourcedata/raw/"
 # "containers-run" does not rely on any property of the immediate
 # computational environment (env vars, services, etc)
 
+# singularity_cmd binds a per-job tmpdir to /tmp
 datalad containers-run \\
   -m "Compute MRIQC for \${subid}" \\
   -n bids-mriqc \\
@@ -128,7 +129,7 @@ datalad containers-run \\
     --verbose \\
     --nprocs $NTHREADS \\
     --mem $MEM_MB \\
-    --work-dir $SCRATCH_DIR \\
+    --work-dir /tmp \\
     --float32 \\
     --verbose-reports
 
