@@ -496,8 +496,6 @@ chmod +x code/createjobs_mriqc.sh code/run_slurm.sh
 cat > code/process.sbatch << EOT
 #!/bin/bash -x
 #SBATCH --account=YOUR_COMPUTE_PROJECT
-#SBATCH --mail-user=NAME@EMAIL.EU
-#SBATCH --mail-type=END
 #SBATCH --job-name=cat_${SAMPLE}
 #SBATCH --output=logs/${SAMPLE}_cat-out.%j
 #SBATCH --error=logs/${SAMPLE}_cat-err.%j
