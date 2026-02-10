@@ -40,6 +40,14 @@ done
 ```
 
 ### Tier 3: SLURM
+
+Before first run, edit `code/process.sbatch` to set your SLURM account and partition:
+```bash
+#SBATCH --account=YOUR_COMPUTE_PROJECT
+#SBATCH --partition=standard
+```
+
+Then:
 ```bash
 ./code/createjobs_mriqc.sh
 ./code/run_slurm.sh
